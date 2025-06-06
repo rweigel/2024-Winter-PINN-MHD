@@ -1,0 +1,116 @@
+\documentclass[]{article}
+
+\title{Comparsion of Physics Informed Neural Network solution with finite difference solution on the 2-D MHD Loop Advection problem}
+
+\begin{document}
+
+\begin{abstract}
+In this work, we report on a PINN developed to solve the equations of ideal magnetohydrodynamics for the 2-D loop advection problem and compare and contrast its solution with that from the finite element code Grid Agnostic ... (GAMERA). We find that ... (accuracy and computation time). 
+\end{abstract}
+
+\section{Introduction}
+
+The numerical solution of the equations of ideal magnetohydrodynamics (MHD) is challenging because they constitute a set of 8 coupled hyperbolic, nonlinear, partial differential equations (PDEs) in time and three spatial dimensions (\cite{Goedbloed2019}). 
+
+%The equations are classified as hyperbolic (\cite{Arfken2011}) since they are derived from conservation laws for mass, momentum energy, and magnetic flux (\cite{Griffiths2017}). The solutions to hyperbolic PDEs can exhibit wave--like and discontinuous (shock) behavior. Hyperbolic equations, even of first order (such as MHD), are challenging to solve. For example, Gauss's Law for magnetic fields uses solely the first derivatives of the magnetic field components, which is more difficult to satisfy than relations of zero--order quantities.  Additionally, the presence of a magnetic field results in anisotropy of particle behavior -- particles can be characterized by two temperatures - one parallel to, the other perpendicular to, the magnetic field (\cite{Chen2016}).
+
+Conventional approaches to solving the MHD equations typically involve the discretization of partial differential equations. The discretization methods include finite elements and finite differences. These approaches become more specialized in techniques such as the Lax-Wendroff method (\cite{Lax1960}), Total Variation Diminishing (TVD) (\cite{Harten1983}), and spectral methods (REF - PICARD ITERATION, LOCAL EXPANSIONS). The first full 3-D MHD simulations of the terrestrial geodynamo were solved for the first time in 1995 (REF - Glatzmaier-Roberts SPECTRAL METHODS, 1995) (cite at least 5 papers that justify this claim).  (cite textbook or review articles for most commonly used methods)
+
+These conventional approaches often require ad--hoc grids for the given problem geometry and boundary conditions (cite papers that cover grids). In addition, ad--hoc corrections are often required to control numerical artifacts, such as the enforcement of $\mathbf{\nabla}\cdot \mathbf{B}=0$ (cite one or two papers). This restriction has led to the development of specialized techniques, such as TVD (REF - Harten, 1983).
+
+The recent introduction of Physics-Informed Neural Networks (PINNs) (\cite{Raissi2019}) has provided a useful, flexible evolution of the solution capabilities of neural networks. Rather than combining the network output and the boundary conditions into a trial function using an ad--hoc form, the network directly estimates the solution to the differential equation; the residuals for the solution to the differential equation are combined with the initial and boundary conditions to form a composite loss function. This method is conceptually simpler than the original trial function method, but it requires computation of the derivatives used in the differential equation. Recent advances in widely available neural network frameworks, such as TensorFlow and PyTorch, have automated much of this process. This \textit{autodifferentiation} capability greatly reduces the effort required to develop PINN loss functions and has proven essential to recent progress in using PINNs to solve differential equations of increasing complexity.
+
+In common with the conventional approaches, the Physics Informed Neural Network involves finding a numerical solution to PDEs. Given initial and boundary conditions, a Physics Informed Neural Network trained on a set of PDEs will provide a solution by generalized approximation. Any mathematical model can be thought of as a transformation machine, where inputs are transformed into outputs. Each of the parameters in the model is an adjustable control for the transformation. Training the network involves finding the parameter values that perform the most accurate transformation. The simplest possible case is a single-node network with two parameters - a weight and an offset. Such a single-node network can be trained to perform linear regression on an arbitrary set of inputs and outputs. Larger neural networks have more parameters and so can model more complicated transformations.
+
+Add reference to nn that produced an algorithm for fast matrix multiplication that had been published before. NOT SURE IF THIS IS RELEVANT
+
+\section{Methods}
+
+\subsection{Exact Solution}
+
+The equations of magnetohydrodynamics (MHD) combine the equations of compressible fluid flow with the Maxwell equations of electromagnetics. The MHD equations in their simplest form are a coupled set of first-order partial differential equations describing the conservation of mass, momentum, energy, charge, and magnetic flux. The equations can be derived beginning with kinetic principles (in the form of the Boltzmann equation) using a simple set of assumptions. The equations can also be developed beginning from a macroscopic viewpoint, directly utilizing the transport equations for mass, momentum, energy, charge, and magnetic flux. The resulting equations can be presented in many alternative forms, based on the assumptions used in the derivation. In this work, we will use the equations of single-fluid ideal MHD:
+
+MHD EQUATIONS GO HERE
+
+Many methods exist for solving systems of coupled partial differential equations. Since analytical solutions are very rarely possible, numerical solutions are the typical result. The most common methods are the Finite Difference Method (FDM) and the Finite Element Method (FEM). These methods are widely used, and have a long heritage.
+
+
+\subsection{MHD}
+
+The GAMERA code provides an excellent reference solver for developing new numerical methods for the MHD equations. The algorithm is constructed to ensure that magnetic divergence is conserved to essentially machine precision. In this work, we will use the GAMERA code as the reference solution for a new method of solving the MHD equations using PINNs. This work will provide a series of examples of increasing mathematical and physical complexity, and illustrate the advantages and disadvantages of the PINN approach.
+
+
+The MHD equations are a typical case of a system of coupled PDEs. The MHD equations are widely used in the modeling of space plasmas, which frequently exist at conditions closely approximating those assumed in the development of the MHD equations. Solution methods have evolved over the years, culminating in current state-of-the-art FEM models such as GAMERA (Grid-Agnostic Mhd for Extended  Research Applications) (GAMERA CITATION). The GAMERA model is an evolution of the widely-used Lyon-Fedder-Mobarry (LFM) model (LFM CITATION). The GAMERA model updates the LFM model to efficiently harness the performance available from modern high-performance computing (HPC) systems. The GAMERA model forms the core of the Multiscale Atmosphere-Geospace Environment (MAGE) at the Center for Geospace Storms (CGS). The MAGE is a set of coupled models which simulate the behavior of a planetary magnetosphere from the low atmosphere to the far-downwind portions of the magnetotail.
+
+\subsection{PINN}
+
+Discuss fact that should not be thought of as memorizing. Can be conceptualized as finding an approximate analytical solution to a PDE; in contrast, FEM algorithms cannot be written in closed form - iteration is required.
+
+A PINN functions as a generalized transformation from inputs to outputs. The outputs are then used to compute a loss function, which measures the accuracy of the transformation. The loss function includes the differential equations that are of interest. Consider a generic first-order differential equation
+
+\begin{equation}
+    G(\vec x, y, \vec {dy/dx}) = 0
+\end{equation}
+
+Construct a network $N$ with parameters $\theta$. The parameters are the weights and biases of the individual nodes in the network. The initial parameters $\theta$ are typically randomized within a small range. Pass the $n_t$ "training" inputs $x$ through the network to generate the outputs $y$. In standard neural networks, this $y$ would be compared to a known value $y_{ref}$. The loss function is then computed as the RMS error of each of the training points:
+
+\begin{equation}
+    L = \sqrt{ \frac {\sum_{i=1}^{n_t} (y_i - y_{i,ref})^2} {n_t}}
+\end{equation}
+
+However, to solve a differential equation, there is no $y_{ref}$. We must pass the solution $y$ through the differential operators in the original equation, and then compute the loss function as
+
+\begin{equation}
+    L = \sqrt{ \frac {\sum_{i=1}^{n_t} (G_i - G_{i,ref})^2} {n_t}}
+\end{equation}
+
+Since the generic differential equations always evaluate to zero, this loss function simplifies to:
+
+\begin{equation}
+    L = \sqrt{ \frac {\sum_{i=1}^{n_t} G_i^2} {n_t}}
+\end{equation}
+
+To apply the differential operators, we make use of autodifferentiation. Autodifferentiation is a facility provided in modern neural network software such as TensorFlow (REF), PyTorch (REF), and JAX (REF). The software records all fundamental mathematical operations performed by the network. To compute derivatives, the network applies the chain rule, along with knowledge of all fundamental derivative forms, to compute the derivatives of the outputs, as determined by the current state of the network. In this way, all derivatives that appear in $G$ can be determined, and thus the value of $G$ can be computed. With all of the $G$ values known, the loss function can then be computed. The training is simply the minimization of $L$ by adjusting the parameters $\theta$ of the network. As described in the example above, a single-node network can be trained in this way to solve a linear differential equation $dy/dx = m$, given a boundary condition $y(0) = b$. In this simple case, the minimization of the loss function can be performed analytically. In the more general case, any of a large variety of minimization algorithms can be applied. The end result is the same in both cases - a set of parameters $\theta$ that minimize the value of $L$.
+
+The primary challenge with PINNs is the computation required for training (cite). However, once the training is complete, the computation required to evaluate the PDEs is insignificant in comparison traditional PDE solutions (cite).
+
+Add a paragraph that cite results from the use of PINNs related to PDEs.
+
+\section{Simulation Results}
+
+% Figure 1
+% Frame from movie at t = 0
+% Top row Bx GAMERA, Bx Analytical, Error
+% Bottom row Bx PINN, Bx PINN, PINN
+
+% Figure 2
+% Frame from movie at t = just before hits boundary
+% Top row Bx GAMERA, Bx Analytical, Error
+% Bottom row Bx PINN, Bx PINN, PINN
+
+% Figure 3
+% (a) Plot of total RMS for GAMERA and PINN for Bx on same axes
+% (b) Plot of total divB for GAMERA and PINN for Bx on same axes
+% (c) Plot of total B^2 for GAMERA and PINN for Bx on same axes
+
+% Figure 4 - Same as Figure 3 but for By
+
+\section{Timing Results}
+
+%# layers, # of hidden/layer, weights in loss function
+
+% Table 1
+% Columns: # layers (1, 2, 3, 4)
+% Rows: # of hidden/layer
+% Values: (training time, RMS Bx at t=end)
+
+% Figure 5
+% For # layers and # hidden/layer shown in figures, plot RMS Bx ant t=end vs weight.
+
+
+\section{Discussion and Conclusions}
+
+%\bibliographystyle{article}
+\bibliography{paper}
+
+\end{document}
