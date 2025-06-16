@@ -110,6 +110,65 @@ Add a paragraph that cite results from the use of PINNs related to PDEs.
 
 \section{Discussion and Conclusions}
 
+The loop current problem is a variation on the standard 2D loop
+current problem often used to test MHD codes (REF). In this case, the
+problem was modified to eliminate the need for treating periodic
+boundary conditions. The current loop starts in the lower-left
+quadrant, then moves at unit speed to the mirror image of the starting
+point in the upper-right quadrant. A line current is directed in +z
+direction (out of the page) along the central axis, and an equivalent
+surface current is returned in the -z direction on the outer
+shell. The resulting magnetic vector potential leads to a fixed
+annular magnetic field with magnitude A at all radii. Discontinuities
+occur at the line current on the central axis, and the surface current
+on the outer shell. To avoid numerical difficulties, the training grid
+was designed to avoid points in these subdomains. In this simple
+problem, the only dynamic variables are the x- and y- components of
+the annular magnetic field. However, to verify stability of the PINN
+solution, the full set of 8 MHD equations (n ,P, ux, uy, uz, Bx, By,
+Bz) is solved. The spatial domain was partitioned using a 128x128 grid
+in (x, y), with 35 points in the t dimension, for a total of
+25x128x128 = 573,440 training points. Each PINN used 3 layers wiith 40
+hidden nodes per layer, and a data weight of 0.6. Initial conditions
+were computed on the spatial grid at t=0, and on each spatial boundary
+at each time step. The GAMERA code used the same spatial grid, but
+uses an internal time-stepping mechanism which typically results in a
+slighly aperiodic output cadence.
+
+Figure 1 compares the predictions from the PINN and the GAMERA code
+for the loop current model. The figures in the left column are nearly
+indistingushable. The errors sohwn in the right column clearly show
+that the PINN and GAMERA provide equivalent results for the starting
+estimate when the same grid spacing is used.
+
+NOTE: Increase the contrast in the error plots - use a different color
+scale.
+
+Figure 2 is similar to Figure 1, but it compares the PINN and GAMERA
+solutions at the end of the simulation. Again, the results are very
+similar. However, the GAMERA solution exhibits a distinct smearing,
+indicative of some numeric drift. This was expected, since the GAMERA
+solution is a forward-stepping finite element solution, and this error
+can accumulate from step to step. For the PINN, the solution is found
+using a global optimization, ensuring that the error is smoothly
+distributed over the entire solution domain.
+
+Figure 3 compares derived quantities of 3 orders: the RMS error in the
+values for Bx and By (derived directly from computed quantities),
+integrated magnetic divergence (computed using the PINN-computed
+spatial derivatives of Bx and By), and the integrated magnetic energy
+(which should be constant). These plots therefore compare the PINN and
+GAMERA methods for 0th-order quantities (RMS error in Bx, By),
+1st-order derivatives (magnetic divergence), and 1st-order integrals
+(magnetic energy). With the exception of magnetic divergence, these
+plots show that the PINN method results in a solution that is
+numerically equivalent to, or slightly superior to
+
+Comparison of computational resources needed
+* Time
+* CPU cycles
+* Memory
+
 %\bibliographystyle{article}
 \bibliography{paper}
 
